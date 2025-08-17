@@ -1,0 +1,83 @@
+# .gitignore para projeto Python (macOS, editors, envs, caches)
+# Comentários em português para facilitar edição
+
+# Arquivos de configuração de ambiente
+.env
+.env.*
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv/
+venv.bak/
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# pytest
+.pytest_cache/
+
+# mypy
+.mypy_cache/
+
+# Coverage reports
+.coverage
+.coverage.*
+coverage.xml
+nosetests.xml
+*.cover
+*.py,cover
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Logs
+*.log
+
+# Editor directories and files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# macOS
+.DS_Store
+
+# Ignore Python bytecode in eggs
+*.egg-info
+
+# Temporary files
+*.swp
+*~
+
+# Optional: arquivos de relatórios grandes gerados
+# reports_by_file/
