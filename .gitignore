@@ -80,4 +80,6 @@ nosetests.xml
 *~
 
 # Optional: arquivos de relatórios grandes gerados
-# reports_by_file/
+reports_by_file/
+relatorio_final_*.md
+metadata_analise_*.json

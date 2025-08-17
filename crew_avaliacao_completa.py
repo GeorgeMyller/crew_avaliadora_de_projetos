@@ -425,6 +425,9 @@ class CodebaseAnalysisCrew:
         - Para evitar custos/overload, existe um limite `max_files` e um limite de tamanho por arquivo.
         """
         logger.info("🚀 Iniciando análise completa da codebase (análise por arquivo)...")
+        
+        # Gera timestamp único para esta execução
+        execution_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
         # Se for arquivo existente, mantemos o comportamento original (usa o relatório como insumo)
         if os.path.exists(report_path) and os.path.isfile(report_path):
@@ -447,20 +450,19 @@ class CodebaseAnalysisCrew:
                 logger.info("🔄 Executando análise com CrewAI (fluxo padrão)...")
                 result = crew.kickoff()
 
-                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                output_file = f"relatorio_final_startup_{timestamp}.md"
+                output_file = f"relatorio_final_startup_{execution_timestamp}.md"
                 with open(output_file, "w", encoding="utf-8") as f:
                     f.write(str(result))
 
                 metadata = {
-                    "timestamp": timestamp,
+                    "timestamp": execution_timestamp,
                     "input_file": report_path,
                     "output_file": output_file,
                     "agents_used": list(self.agents.keys()),
                     "total_tasks": len(all_tasks),
                     "llm_model": "gemini-2.5-flash"
                 }
-                metadata_file = f"metadata_analise_{timestamp}.json"
+                metadata_file = f"metadata_analise_{execution_timestamp}.json"
                 with open(metadata_file, "w", encoding="utf-8") as f:
                     json.dump(metadata, f, indent=2, ensure_ascii=False)
 
@@ -487,8 +489,10 @@ class CodebaseAnalysisCrew:
         allowed_exts = {".py", ".md", ".txt", ".json", ".yaml", ".yml", ".ini", ".cfg", ".sh", ".tsx", ".ts", ".js"}
 
         per_file_reports = []
-        reports_dir = os.path.join(os.getcwd(), "reports_by_file")
+        # Cria diretório de relatórios com timestamp para isolar execuções
+        reports_dir = os.path.join(os.getcwd(), f"reports_by_file_{execution_timestamp}")
         os.makedirs(reports_dir, exist_ok=True)
+        logger.info(f"📁 Diretório de relatórios: {reports_dir}")
 
         files_analyzed = 0
 
@@ -575,8 +579,7 @@ Conteúdo do arquivo (até {max_chars} chars):
                 safe_name = os.path.relpath(file_path, root_dir).replace(os.sep, "_").replace("..", "")
                 if not safe_name:
                     safe_name = fname
-                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                out_name = f"{safe_name}_{timestamp}.md"
+                out_name = f"{safe_name}_{execution_timestamp}.md"
                 out_path = os.path.join(reports_dir, out_name)
                 try:
                     with open(out_path, "w", encoding="utf-8") as f:
@@ -619,22 +622,22 @@ Conteúdo do arquivo (até {max_chars} chars):
             final_result = crew_all.kickoff()
 
             # Salva resultado final consolidado
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            output_file = f"relatorio_final_startup_{timestamp}.md"
+            output_file = f"relatorio_final_startup_{execution_timestamp}.md"
             with open(output_file, "w", encoding="utf-8") as f:
                 f.write(str(final_result))
 
             # Salva metadados
             metadata = {
-                "timestamp": timestamp,
+                "timestamp": execution_timestamp,
                 "root_dir": root_dir,
                 "per_file_reports": per_file_reports,
                 "output_file": output_file,
                 "agents_used": list(self.agents.keys()),
                 "total_files_analyzed": len(per_file_reports),
                 "llm_model": "gemini-2.5-flash",
+                "reports_directory": reports_dir,
             }
-            metadata_file = f"metadata_analise_{timestamp}.json"
+            metadata_file = f"metadata_analise_{execution_timestamp}.json"
             with open(metadata_file, "w", encoding="utf-8") as f:
                 json.dump(metadata, f, indent=2, ensure_ascii=False)
 
@@ -650,8 +653,7 @@ Conteúdo do arquivo (até {max_chars} chars):
             # relatórios por arquivo salvos e produzimos um relatório final simples.
             logger.error(f"❌ Erro durante consolidação com Crew (usando fallback): {e}")
             try:
-                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                fallback_output = f"relatorio_final_fallback_{timestamp}.md"
+                fallback_output = f"relatorio_final_fallback_{execution_timestamp}.md"
                 with open(fallback_output, "w", encoding="utf-8") as out_f:
                     out_f.write("# Relatório Consolidado (fallback)\n\n")
                     out_f.write("_A consolidação automática com a Crew falhou; este é um fallback que concatena os relatórios por arquivo gerados previamente._\n\n")
@@ -666,17 +668,18 @@ Conteúdo do arquivo (até {max_chars} chars):
                             out_f.write(f"\n(Erro ao incluir {r['file']}: {inner_e})\n")
 
                 metadata = {
-                    "timestamp": timestamp,
+                    "timestamp": execution_timestamp,
                     "root_dir": root_dir,
                     "per_file_reports": per_file_reports,
                     "output_file": fallback_output,
                     "agents_used": list(self.agents.keys()),
                     "total_files_analyzed": len(per_file_reports),
                     "llm_model": "gemini-2.5-flash",
+                    "reports_directory": reports_dir,
                     "fallback": True,
                     "error": str(e),
                 }
-                metadata_file = f"metadata_analise_{timestamp}.json"
+                metadata_file = f"metadata_analise_{execution_timestamp}.json"
                 with open(metadata_file, "w", encoding="utf-8") as f:
                     json.dump(metadata, f, indent=2, ensure_ascii=False)
 
